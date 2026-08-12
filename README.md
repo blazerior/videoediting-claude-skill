@@ -36,7 +36,7 @@ Concrete result: a 1:12 talking-head monologue shot on an iPhone becomes a finis
 ## Quick start
 
 ```bash
-git clone https://github.com/YOUR-NAME/claude-videoediting-skill.git
+git clone https://github.com/blazerior/claude-videoediting-skill.git
 cd claude-videoediting-skill
 ```
 

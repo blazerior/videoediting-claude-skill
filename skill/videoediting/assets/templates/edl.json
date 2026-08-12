@@ -1,0 +1,16 @@
+{
+  "_note": "Edit list. `segments` are the pieces of the source that stay in the video, in order — everything between them is cut. Alternate `zoom` between neighbours (1.00 / 1.05 / 1.09) so each cut reads as a change of angle. The `t` field is a note to yourself and does not affect the build.",
+
+  "source": "D:\\path\\to\\IMG_XXXX.MOV",
+
+  "segments": [
+    { "start": 0.00,  "end": 2.11,  "zoom": 1.00,  "t": "hook — opening line" },
+    { "start": 2.36,  "end": 6.28,  "zoom": 1.045, "t": "hook continues" },
+    { "start": 7.21,  "end": 10.52, "zoom": 1.00,  "t": "myth busted" },
+    { "start": 10.75, "end": 17.30, "zoom": 1.05,  "t": "the actual cause" },
+    { "start": 17.63, "end": 21.06, "zoom": 1.00,  "t": "mechanism, part 1" },
+    { "start": 21.31, "end": 32.20, "zoom": 1.055, "t": "mechanism, part 2" },
+    { "start": 55.81, "end": 62.25, "zoom": 1.09,  "t": "climax — maximum zoom" },
+    { "start": 62.61, "end": 67.75, "zoom": 1.00,  "t": "call to action" }
+  ]
+}

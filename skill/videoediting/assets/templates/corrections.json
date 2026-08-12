@@ -1,0 +1,9 @@
+{
+  "_note": "Speech-recognition fixes. Key = word index from dump_words.py, value = the correct text. An empty string removes the word from the subtitles (useful for stray dashes). Get the indices with: python edit/tools/dump_words.py edit/transcript.json",
+
+  "22": "",
+  "26": "burnout",
+  "50": "innate,",
+  "77": "unrealised",
+  "105": "In"
+}

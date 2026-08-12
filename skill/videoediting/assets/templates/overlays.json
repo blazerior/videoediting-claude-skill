@@ -1,0 +1,42 @@
+{
+  "_note": "Infographic spec. `css` is shared by every card, `items` are the cards themselves, `timeline` says when each one is on screen (seconds on the FINAL timeline, after the cut). Delete the items you do not use.",
+
+  "css": ".stage{position:absolute;inset:0}\n.scrim-top{position:absolute;left:0;right:0;top:0;height:820px;background:linear-gradient(180deg,rgba(14,11,8,.72) 0%,rgba(14,11,8,.45) 55%,rgba(14,11,8,0) 100%)}\n\n.hook{position:absolute;left:72px;right:72px;top:186px;text-align:center}\n.kicker{display:inline-block;padding:13px 30px;border-radius:100px;background:#C7523B;color:#FFF3E8;font-size:32px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;margin-bottom:30px}\n.hook h1{font-size:100px;line-height:1.03;color:#FFF6EC;font-weight:700;letter-spacing:-.025em;text-shadow:0 12px 44px rgba(0,0,0,.6)}\n.hook h1 em{font-style:normal;color:#E8A33D}\n\n.card{position:absolute;left:66px;right:66px;top:268px;background:rgba(20,16,12,.88);border-radius:36px;padding:46px 48px;border-left:9px solid #E8A33D;box-shadow:0 26px 70px rgba(0,0,0,.42)}\n.card .num{font-size:29px;color:#E8A33D;letter-spacing:.22em;font-weight:600;margin-bottom:16px;text-transform:uppercase}\n.card p{font-size:58px;line-height:1.16;color:#FFF6EC;font-weight:600}\n.card .sub{font-size:36px;line-height:1.3;color:#CDBBA5;font-weight:400;margin-top:18px}\n.strike{position:relative;color:#C7523B}\n.strike:after{content:'';position:absolute;left:-6px;right:-6px;top:52%;height:7px;background:#C7523B;transform:rotate(-3deg);border-radius:4px}\n\n.split{position:absolute;left:66px;right:66px;top:290px;display:flex;gap:22px}\n.col{flex:1;background:rgba(20,16,12,.88);border-radius:32px;padding:38px 34px;box-shadow:0 26px 70px rgba(0,0,0,.42)}\n.col.dim{opacity:0}\n.col h3{font-size:28px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;margin-bottom:22px}\n.col.a h3{color:#8FA9B8}\n.col.b h3{color:#E8A33D}\n.col li{font-size:44px;line-height:1.22;color:#FFF6EC;font-weight:600;list-style:none;margin-bottom:14px}\n.col .arrow{margin-top:20px;font-size:34px;color:#E8A33D;font-weight:600}\n\n.list{position:absolute;left:66px;right:66px;top:290px;background:rgba(20,16,12,.88);border-radius:36px;padding:44px 46px;box-shadow:0 26px 70px rgba(0,0,0,.42)}\n.list .num{font-size:29px;color:#E8A33D;letter-spacing:.22em;font-weight:600;margin-bottom:26px;text-transform:uppercase}\n.list .row{display:flex;align-items:flex-start;gap:20px;margin-bottom:20px}\n.list .dot{width:14px;height:14px;border-radius:50%;background:#E8A33D;margin-top:20px;flex:none}\n.list .row span{font-size:50px;line-height:1.18;color:#FFF6EC;font-weight:600}\n.list .row.off{opacity:0}\n.list .row.hi span{color:#E8A33D}\n.list .row.hi .dot{background:#C7523B;width:18px;height:18px;margin-top:18px}\n\n.quote{position:absolute;left:66px;right:66px;top:250px;text-align:center}\n.quote .mark{font-size:150px;line-height:.7;color:#E8A33D;font-weight:700;margin-bottom:14px}\n.quote p{font-size:82px;line-height:1.1;color:#FFF6EC;font-weight:700;letter-spacing:-.02em;text-shadow:0 14px 48px rgba(0,0,0,.72)}\n.quote .tag{margin-top:30px;display:inline-block;padding:12px 28px;border-radius:100px;background:rgba(199,82,59,.92);color:#FFF3E8;font-size:30px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}\n\n.big{position:absolute;left:66px;right:66px;top:280px;text-align:center}\n.big .n{font-size:230px;line-height:.92;color:#E8A33D;font-weight:700;letter-spacing:-.04em;text-shadow:0 16px 50px rgba(0,0,0,.6)}\n.big .cap{margin-top:14px;font-size:48px;color:#FFF6EC;font-weight:600;text-shadow:0 10px 34px rgba(0,0,0,.6)}\n\n.cta{position:absolute;left:66px;right:66px;top:300px;background:rgba(20,16,12,.9);border-radius:36px;padding:42px 46px;display:flex;align-items:center;gap:26px;box-shadow:0 26px 70px rgba(0,0,0,.45)}\n.cta .ico{width:96px;height:96px;border-radius:26px;background:#E8A33D;color:#1A1310;font-size:52px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}\n.cta .t1{font-size:50px;color:#FFF6EC;font-weight:700;line-height:1.12}\n.cta .t2{font-size:33px;color:#CDBBA5;font-weight:400;margin-top:8px}",
+
+  "items": [
+    { "id": "hook", "html": "<div class='stage'><div class='scrim-top'></div><div class='hook'><span class='kicker'>Topic</span><h1>The <em>hook</em> headline<br>on two lines</h1></div></div>" },
+
+    { "id": "myth", "html": "<div class='stage'><div class='card'><div class='num'>Common mistake</div><p>It is not <span class='strike'>laziness</span><br>and not a lack of goals</p></div></div>" },
+
+    { "id": "cause", "html": "<div class='stage'><div class='card'><div class='num'>The actual cause</div><p>Losing touch<br>with yourself</p><div class='sub'>Small print underneath</div></div></div>" },
+
+    { "id": "split1", "html": "<div class='stage'><div class='split'><div class='col a'><h3>Innate</h3><li>Temperament</li></div><div class='col b dim'><h3>Acquired</h3><li>Appears later</li></div></div></div>" },
+
+    { "id": "split2", "html": "<div class='stage'><div class='split'><div class='col a'><h3>Innate</h3><li>Temperament</li></div><div class='col b'><h3>Acquired</h3><li>Values</li><li>Worldview</li><div class='arrow'>↑ from parents</div></div></div></div>" },
+
+    { "id": "list1", "html": "<div class='stage'><div class='list'><div class='num'>List heading</div><div class='row'><div class='dot'></div><span>First bullet</span></div><div class='row off'><div class='dot'></div><span>Second appears later</span></div></div></div>" },
+
+    { "id": "list2", "html": "<div class='stage'><div class='list'><div class='num'>List heading</div><div class='row'><div class='dot'></div><span>First bullet</span></div><div class='row hi'><div class='dot'></div><span>Second appears later</span></div></div></div>" },
+
+    { "id": "quote", "html": "<div class='stage'><div class='scrim-top'></div><div class='quote'><div class='mark'>“</div><p>The key thought,<br>set large</p><div class='tag'>Caption</div></div></div>" },
+
+    { "id": "number", "html": "<div class='stage'><div class='scrim-top'></div><div class='big'><div class='n'>87%</div><div class='cap'>caption for the number</div></div></div>" },
+
+    { "id": "cta1", "html": "<div class='stage'><div class='cta'><div class='ico'>↓</div><div><div class='t1'>Take the action</div><div class='t2'>Link in the description</div></div></div></div>" },
+
+    { "id": "cta2", "html": "<div class='stage'><div class='cta'><div class='ico'>+</div><div><div class='t1'>Subscribe</div><div class='t2'>Short supporting line</div></div></div></div>" }
+  ],
+
+  "timeline": [
+    { "id": "hook",   "in": 0.70,  "out": 5.75,  "fade": 0.30 },
+    { "id": "myth",   "in": 6.35,  "out": 9.10,  "fade": 0.25 },
+    { "id": "cause",  "in": 10.60, "out": 15.55, "fade": 0.25 },
+    { "id": "split1", "in": 17.50, "out": 20.10, "fade": 0.25 },
+    { "id": "split2", "in": 20.00, "out": 26.40, "fade": 0.25 },
+    { "id": "list1",  "in": 27.20, "out": 30.05, "fade": 0.22 },
+    { "id": "list2",  "in": 30.00, "out": 36.60, "fade": 0.22 },
+    { "id": "quote",  "in": 55.30, "out": 58.80, "fade": 0.30 },
+    { "id": "cta1",   "in": 59.60, "out": 63.90, "fade": 0.28 },
+    { "id": "cta2",   "in": 64.60, "out": 67.90, "fade": 0.28 }
+  ]
+}

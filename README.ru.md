@@ -36,8 +36,8 @@
 ## Быстрый старт
 
 ```bash
-git clone https://github.com/blazerior/claude-videoediting-skill.git
-cd claude-videoediting-skill
+git clone https://github.com/blazerior/videoediting-claude-skill.git
+cd videoediting-claude-skill
 ```
 
 **Windows:**

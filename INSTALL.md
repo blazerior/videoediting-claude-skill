@@ -5,8 +5,8 @@ Two paths: the automatic one (a script does everything) and the manual one (you 
 ## Path 1: the install script
 
 ```bash
-git clone https://github.com/YOUR-NAME/claude-videoediting-skill.git
-cd claude-videoediting-skill
+git clone https://github.com/blazerior/videoediting-claude-skill.git
+cd videoediting-claude-skill
 ```
 
 **Windows:**

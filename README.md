@@ -36,8 +36,8 @@ Concrete result: a 1:12 talking-head monologue shot on an iPhone becomes a finis
 ## Quick start
 
 ```bash
-git clone https://github.com/blazerior/claude-videoediting-skill.git
-cd claude-videoediting-skill
+git clone https://github.com/blazerior/videoediting-claude-skill.git
+cd videoediting-claude-skill
 ```
 
 **Windows:**
@@ -89,16 +89,18 @@ The other one: **the entire state of the edit lives in three JSON files.** Want 
 
 ```
 skill/videoediting/
-├── SKILL.md                      the workflow and 10 rules that make or break a video
+├── SKILL.md                      the workflow and the rules that make or break a video
 ├── references/
 │   ├── setup.md                  installing on a clean machine (Windows/macOS)
 │   ├── pipeline.md               8 steps with commands + an acceptance checklist
 │   ├── storyboard.md             video formats, 9 panel types, converting timings
 │   ├── design-system.md          palette, type scale, safe zones, techniques
+│   ├── batch-pipeline.md         many reels as cached stages — and where context goes
+│   ├── remotion.md               animated graphics tier via the Remotion plugin
 │   ├── ffmpeg-cookbook.md        grades, effects, transitions, audio, encoding
 │   └── troubleshooting.md        14 failures, each of which cost an hour of debugging
 └── assets/
-    ├── tools/                    6 working scripts — copied into the project as-is
+    ├── tools/                    10 working scripts — copied into the project as-is
     └── templates/                starter edl.json, overlays.json, corrections.json
 ```
 
@@ -114,6 +116,34 @@ skill/videoediting/
 | `make_ass.py` | word-level ASS subtitles, re-timed onto the post-cut timeline |
 | `render_overlays.py` | HTML/CSS → headless Chrome → 1080×1920 PNG with a transparent background |
 | `build.py` | assembly: `base` (cut + grade), `final` (overlays + subtitles + audio) |
+| `build_vo.py` | same, for a separate voiceover track — footage from several sources fitted to the audio |
+| `batch_vo.py` | transcribe every voiceover in a single model load |
+| `mute_subs.py` | drop subtitles where a full-screen card is on screen |
+| `pipeline.py` | batch driver — every stage over every reel, cached by input hash |
+
+### Editing many reels at once
+
+Doing ten reels the conversational way costs roughly ten times the context of doing one, and most of that buys nothing. `pipeline.py` runs each stage once over the whole project:
+
+```bash
+python tools/pipeline.py all
+```
+
+```
+ingest    : 91 files, 71 vertical
+transcribe: 7 new, 0 cached
+overlays  : 10 rebuilt, 0 cached
+subs      : 10 rebuilt, 0 cached
+base      : 10 rebuilt, 0 cached
+final     : 10 rebuilt, 0 cached
+qa        : work/qa.png — one image for every reel
+```
+
+Re-running is free when nothing changed. The `qa` stage stacks every reel into one contact sheet, so ten reels are verified with a single look instead of twenty separate frame checks. Details and the full list of context traps: `references/batch-pipeline.md`.
+
+### Animated graphics (optional)
+
+With the [Remotion plugin](https://www.remotion.dev/docs/ai/claude-code-plugin) installed, React-rendered overlays can be exported with an alpha channel and composited by the same ffmpeg pass. Worth it when the motion itself carries meaning — counters, staged reveals, spring physics. Not worth it for cards that just fade in. See `references/remotion.md`.
 
 ### The edit list
 

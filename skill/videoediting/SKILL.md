@@ -17,6 +17,13 @@ footage → transcript with word-level timings → EDL (edit list) → ffmpeg �
 
 Core principle: **the video is never analysed pixel by pixel — the edit is driven by timed text.** Speech defines the structure; the picture serves it.
 
+## One reel or many?
+
+Decide this first — it changes everything downstream.
+
+- **One or two reels** → follow the step order below, conversationally.
+- **Three or more** → switch to the batch pipeline: [references/batch-pipeline.md](references/batch-pipeline.md). Each stage runs once over the whole project and caches by input hash. Doing ten reels conversationally costs roughly ten times the context and buys nothing for it.
+
 ## Order of work
 
 Always follow the steps, never skip ahead. Each step produces the input for the next.
@@ -34,13 +41,13 @@ Full commands for each step — [references/pipeline.md](references/pipeline.md)
 
 ## What this pipeline can and cannot do
 
-Can: semantic cutting, pause removal, punch-in on cuts, colour grading (including `.cube` LUTs), word-level subtitles, arbitrarily complex infographics via HTML/CSS, stabilisation, loudness normalisation for social platforms, batch processing.
+Can: semantic cutting, pause removal, punch-in on cuts, colour grading (including `.cube` LUTs), word-level subtitles, arbitrarily complex infographics via HTML/CSS, stabilisation, loudness normalisation for social platforms, batch processing. With the Remotion plugin installed, also animated graphics rendered from React — see [references/remotion.md](references/remotion.md).
 
 **Cannot** — say so up front if the user asks for it: frame-accurate creative cutting, object tracking (pinning a caption to a moving hand), masks and masked grading, complex motion graphics. Those need Premiere / DaVinci / After Effects.
 
 ## Ready-made tools
 
-`assets/tools/` holds six working scripts — **copy them into the project, do not rewrite them from scratch**:
+`assets/tools/` holds ten working scripts — **copy them into the project, do not rewrite them from scratch**:
 
 | Script | What it does |
 |---|---|
@@ -50,6 +57,10 @@ Can: semantic cutting, pause removal, punch-in on cuts, colour grading (includin
 | `make_ass.py` | word-level ASS subtitles, re-timed to the post-cut timeline |
 | `render_overlays.py` | HTML/CSS → headless Chrome → 1080×1920 PNG with alpha |
 | `build.py` | assembly: `base` (cut + grade), `final` (overlays + subtitles + audio) |
+| `build_vo.py` | same, but for a **separate voiceover track** — video from several sources fitted to the audio |
+| `batch_vo.py` | transcribe every voiceover in one model load |
+| `mute_subs.py` | drop subtitles where a full-screen card is on screen |
+| `pipeline.py` | **batch driver** — every stage over every reel, with caching |
 
 `assets/templates/` holds starter `edl.json`, `overlays.json` and `corrections.json`.
 
@@ -74,6 +85,8 @@ Load these on demand, not all at once:
 - [references/pipeline.md](references/pipeline.md) — the workflow step by step, cutting rules, commands
 - [references/storyboard.md](references/storyboard.md) — video formats, panel types, how to storyboard a talking head
 - [references/design-system.md](references/design-system.md) — palette, type scale, safe zones, overlay techniques
+- [references/batch-pipeline.md](references/batch-pipeline.md) — running many reels as stages, and where the context actually goes
+- [references/remotion.md](references/remotion.md) — animated graphics tier: when React-rendered overlays earn their cost
 - [references/ffmpeg-cookbook.md](references/ffmpeg-cookbook.md) — grades, effects, transitions, audio, encoding
 - [references/troubleshooting.md](references/troubleshooting.md) — **read this before your first ffmpeg run**; fourteen failures, each of which cost an hour
 
@@ -91,6 +104,7 @@ Learned on real builds, not from documentation.
 8. **Proofread the subtitles.** A recognition error burned into the picture is permanent.
 9. **Verify by looking, not by faith.** Pull still frames, stack them with `hstack`, open the result via Read.
 10. **Never ship without the acceptance checklist** in pipeline.md.
+11. **Never let a tool write back into a config file.** A script that appends its own output to the EDL doubles that file's size, and every later edit echoes the whole thing into context. Generated data belongs in `work/`.
 
 ## Orchestration
 

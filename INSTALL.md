@@ -80,6 +80,29 @@ Check that your distribution's ffmpeg is built with libass — see the filter ch
 pip install faster-whisper
 ```
 
+### Optional extras
+
+Neither is needed for the core pipeline — install them only if the case applies to you.
+
+**yt-dlp** — only if your source arrives as a link rather than a file. `download.py` shells out to it:
+
+```powershell
+winget install --id yt-dlp.yt-dlp -e
+```
+
+```bash
+brew install yt-dlp        # macOS
+pip install -U yt-dlp      # any OS
+```
+
+**A Groq or OpenAI API key** — only if you would rather not download a 1.6 GB model. `transcribe_cloud.py` produces the same word-level `transcript.json` through their Whisper API:
+
+```bash
+export GROQ_API_KEY=...     # or OPENAI_API_KEY
+```
+
+Trade-off worth stating plainly: it is faster to get started and needs no disk, but your audio leaves your machine. For client footage under NDA, stay with the local model.
+
 ## Verifying the ffmpeg build
 
 This is the step people skip and then wonder why nothing works. Stripped-down builds lack the filters the pipeline needs:

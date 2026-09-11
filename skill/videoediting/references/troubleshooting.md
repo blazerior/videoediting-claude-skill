@@ -129,3 +129,27 @@ This is exactly why the contact sheet must be reviewed **before** the EDL is bui
 ## 14. Speech recognised, but the text is wrong
 
 Normal behaviour for `small`: compound words fuse, prefixes swap, inflections drift. Do not try to fix it by switching models mid-flight — proofread through `corrections.json` by word index. For a minute of speech that is about ten fixes and five minutes of work.
+
+## 15. `transcribe_cloud.py` exits with "API error 413" or hangs on upload
+
+413 means the compressed chunk still exceeds the provider's limit — check that `ffmpeg` actually produced the 64 kbps mono re-encode (`_upload_*.mp3` briefly appears in the output dir; if `ffmpeg` itself failed the script would have already exited, so this points at an unusually long single chunk). A hang on upload for several minutes with no output is normal for a long file on a slow connection — the compressed audio for an hour of speech is still only ~30 MB.
+
+A 401 means the key is wrong or unset in the shell that actually runs the script — `.env` is only read from the audio file's folder and the current directory, not `~/.config`.
+
+## 16. `download.py` fails or produces the wrong file
+
+"yt-dlp not found" — installed but not on PATH after install; restart the terminal, same as ffmpeg in setup.md.
+
+A private link, a geo-blocked video, or a login-walled page fails with yt-dlp's own error message printed to stderr — there is no workaround inside this pipeline; get a direct file instead.
+
+If `source.mp4` exists from a previous run, the script skips the download and reports the old file — pass `--force` when the URL content actually changed.
+
+## 17. A fabricated line appears in the subtitles that nobody said
+
+The tell: a phrase like "Субтитры создал DimaTorzhok" (or "Subtitles by ...", "thanks for watching, don't forget to subscribe", any other YouTube-outro-shaped sentence) sitting over a stretch of the video where the speaker is silent or has already stopped talking — usually right at the end of the clip, sometimes at the start.
+
+This is Whisper hallucinating, not a bug in the recognised speech. Both `large-v3` and `large-v3-turbo` were trained partly on YouTube's own auto-captions, which are full of community-subtitler credit lines and outro boilerplate; fed a stretch of silence or room tone, the model sometimes free-associates one of those instead of reporting "no speech." It does this on both the local (`transcribe.py`) and cloud (`transcribe_cloud.py`) path, because it is the same family of model either way.
+
+Both scripts now guard against it and print `HALLUCINATION SUSPECTED, DROPPED [...]` when they catch one — that line in the console output is not an error, it is the safety net working. It is not airtight: a fluently-hallucinated line can score confident enough on both `no_speech_prob` and `avg_logprob` to slip through. **Always read the first and last segment of `transcript.json` yourself** before building subtitles — this is the one blind spot proofreading-by-confidence-score (Step 3) does not cover, because the fabricated text can carry a perfectly normal-looking confidence.
+
+If one slips through anyway: remove it from `transcript.json` (or null it out via `corrections.json` by word index) and rebuild subtitles — do not just delete it from the finished `.srt`, or it will come back the next time anything upstream is rebuilt.

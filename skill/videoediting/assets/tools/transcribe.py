@@ -5,6 +5,19 @@ Env:   WHISPER_MODEL (default large-v3), WHISPER_LANG (en/ru/...), WHISPER_DEVIC
 
 Always export HF_HUB_DISABLE_XET=1 before the first run, otherwise the model
 download stalls after a few megabytes. See references/troubleshooting.md.
+
+Whisper hallucinates fabricated text over silence and trailing dead air —
+most infamously, on Russian audio, a fake subtitler credit line ("Субтитры
+создал DimaTorzhok" and close variants). This is a known artefact of its
+YouTube-caption training data, not a bug in this script, and it will keep
+happening on some fraction of clips no matter what model or version is used.
+Three layers guard against it below: hallucination_silence_threshold (skips
+decoding into long silences), condition_on_previous_text=False (stops one
+hallucinated segment from seeding another), and a post-filter that drops any
+segment whose own confidence scores say it probably isn't real speech. None
+of the three is airtight — always eyeball the first and last segment of
+transcript.json before it goes anywhere near subtitles. See
+references/troubleshooting.md #17.
 """
 import json
 import os
@@ -17,6 +30,11 @@ OUT_DIR = sys.argv[2] if len(sys.argv) > 2 else "."
 MODEL = os.environ.get("WHISPER_MODEL", "large-v3")
 DEVICE = os.environ.get("WHISPER_DEVICE", "cpu")
 
+# A segment this deep into "probably silence" (no_speech_prob) while also
+# this low-confidence (avg_logprob) is very rarely real speech worth keeping.
+NO_SPEECH_CUTOFF = 0.6
+LOGPROB_CUTOFF = -0.5
+
 os.makedirs(OUT_DIR, exist_ok=True)
 
 model = WhisperModel(MODEL, device=DEVICE, compute_type="int8" if DEVICE == "cpu" else "float16")
@@ -27,12 +45,19 @@ segments, info = model.transcribe(
     vad_filter=True,
     vad_parameters={"min_silence_duration_ms": 300},
     beam_size=5,
+    condition_on_previous_text=False,
+    hallucination_silence_threshold=2.0,
 )
 
 print(f"language={info.language} prob={info.language_probability:.2f}", flush=True)
 
 data = {"language": info.language, "duration": info.duration, "segments": []}
 for seg in segments:
+    if seg.no_speech_prob > NO_SPEECH_CUTOFF and seg.avg_logprob < LOGPROB_CUTOFF:
+        print(f"HALLUCINATION SUSPECTED, DROPPED [{seg.start:6.2f} -> {seg.end:6.2f}] "
+              f"(no_speech={seg.no_speech_prob:.2f} logprob={seg.avg_logprob:.2f}): {seg.text.strip()!r}",
+              flush=True)
+        continue
     words = [
         {"w": w.word.strip(), "s": round(w.start, 3), "e": round(w.end, 3), "p": round(w.probability, 3)}
         for w in (seg.words or [])

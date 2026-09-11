@@ -103,6 +103,29 @@ If the system drive is tight, move the cache:
 HF_HOME=D:\ai-models\hf
 ```
 
+**Alternative: skip the local model entirely.** `transcribe_cloud.py` gets the same word-level output from Groq's (free tier) or OpenAI's Whisper API — no download, no disk space, works on a machine with no GPU. Get a key at <https://console.groq.com/keys>, then either export it or drop it in a `.env` file next to the audio:
+
+```
+GROQ_API_KEY=gsk_...
+```
+
+Trade-off: no per-word confidence score, and audio over ~24 MB (compressed) gets chunked and sent to the API in pieces rather than staying on your machine. Fine for a one-off edit; use local `transcribe.py` for anything recurring or privacy-sensitive.
+
+## 5b. Optional: pulling source footage from a URL
+
+If the footage lives at a URL rather than on disk (a share link, an unlisted upload, a recording someone sent), `download.py` needs `yt-dlp`:
+
+```powershell
+winget install --id yt-dlp.yt-dlp -e --accept-source-agreements --accept-package-agreements
+```
+
+```bash
+brew install yt-dlp        # macOS
+pip install -U yt-dlp      # any OS, fallback
+```
+
+Skip this entirely if the user always hands you a local file.
+
 ## 6. Project layout
 
 ```powershell

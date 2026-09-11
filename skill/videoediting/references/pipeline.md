@@ -1,5 +1,13 @@
 # Workflow
 
+## Step 0. Get the source (only if it is not already a local file)
+
+```bash
+python edit/tools/download.py "https://youtu.be/xxxxxxxxxxx" edit
+```
+
+Lands at `edit/source.mp4` regardless of the site (yt-dlp handles YouTube, Vimeo, and hundreds of others). Grabs native quality, not a capped resolution — editing needs headroom for crop/zoom that a tool built only for *watching* a video does not. Skip this step entirely when the user already handed you a file.
+
 ## Step 1. Inspect the source
 
 ```bash
@@ -14,11 +22,14 @@ Find the cuts that already exist inside the source — it is good practice to al
 ffmpeg -hide_banner -i "IMG_XXXX.MOV" -vf "select='gt(scene,0.25)',showinfo" -an -f null -
 ```
 
-Pull a contact sheet and **open the frames via Read**:
+Pull a contact sheet and **open the frames via Read**. Scale the sampling rate to the source's length instead of a fixed `fps=1/9` — a nine-minute raw recording at that rate is 60 frames (fine), but a fixed-length interview at forty-five minutes is 300 (not fine, and most of them will be near-duplicates of a static talking head):
 
 ```bash
-ffmpeg -y -i "IMG_XXXX.MOV" -vf "fps=1/9,scale=360:-1" edit/work/f_%02d.jpg
+# step (seconds between frames) ≈ duration / 24, floored at 3s and capped at 20s
+ffmpeg -y -i "IMG_XXXX.MOV" -vf "fps=1/<step>,scale=360:-1" edit/work/f_%02d.jpg
 ```
+
+For a short clip under a minute, just use `fps=1/3` directly — the formula above is for longer or unfamiliar-length source you have not eyeballed yet.
 
 Do not look for "what the video is about" — look for specifics: where the subject moves, sits down, stands up, fixes their hair; where the light and background change. Those places break cuts, and you need to know about them **before** you build the EDL.
 
@@ -48,13 +59,21 @@ HF_HUB_DISABLE_XET=1 WHISPER_MODEL=large-v3-turbo WHISPER_LANG=en python3 edit/t
 
 Set `WHISPER_LANG` to the language actually spoken, or leave it unset for auto-detection. The first run downloads the model — run it in the background and use the time for grading and overlay design.
 
+No GPU, no 4 GB to spare, or this is a one-off machine you will not use again? Skip the model download entirely:
+
+```bash
+GROQ_API_KEY=... WHISPER_LANG=en python edit/tools/transcribe_cloud.py edit/work/audio.wav edit
+```
+
+Produces the same `transcript.json`/`transcript.srt`, so every later step is unaffected. Trade-off: no true per-word confidence (the API doesn't return one), so `dump_words.py`'s `p` column is a per-segment approximation — proofread by reading the whole transcript, not just the low-confidence words.
+
 ## Step 3. Proofread the text
 
 ```bash
 python edit/tools/dump_words.py edit/transcript.json
 ```
 
-Look at words with confidence `p` below 0.7, then read the whole thing. Collect fixes in `edit/corrections.json` — the key is the word index, an empty string deletes the word:
+Look at words with confidence `p` below 0.7, then read the whole thing. **Also open `transcript.json` directly and check the first and last segment by eye** — Whisper occasionally hallucinates a fabricated line over silence (classically a fake subtitler credit on Russian audio) that can carry a deceptively normal confidence score. Both transcription scripts print `HALLUCINATION SUSPECTED, DROPPED [...]` when they catch one automatically, but that filter is not airtight — see [troubleshooting.md #17](troubleshooting.md). Collect fixes in `edit/corrections.json` — the key is the word index, an empty string deletes the word:
 
 ```json
 {

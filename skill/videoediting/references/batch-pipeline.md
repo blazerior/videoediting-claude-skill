@@ -81,6 +81,8 @@ The `probe` stage does it once per **source file**, writes `work/shots.json`, an
 
 `faster-whisper` spends most of its wall clock loading the model, not transcribing. `batch_vo.py` loads it once and walks every voiceover. Seven voiceovers: one load instead of seven.
 
+This is also why `transcribe_cloud.py` and `download.py` are **not** wired into `pipeline.py`: the batch `transcribe` stage's entire value is one model load instead of N, and per-file cloud API calls would trade that away for a per-call cost and network latency multiplied by every voiceover. For a batch project, install faster-whisper properly (setup.md) rather than reaching for the cloud path. `download.py` has nowhere to plug in either — `ingest` inventories `media_dir` as-is; fetch every source into that folder by hand before running `ingest`.
+
 ### 5. Verbose command echo
 
 Printing the full ffmpeg command line for every reel is a few hundred tokens each and tells you nothing you didn't already know. The pipeline prints `overlays : 3 rebuilt, 7 cached` and nothing more. Failures still dump stderr — that is the case where the detail is worth paying for.

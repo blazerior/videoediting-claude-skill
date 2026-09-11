@@ -2,7 +2,7 @@
 name: videoediting
 description: "Edit already-shot footage with ffmpeg: re-cut by speech, colour grading, word-level burned-in subtitles, infographic and meaning overlays, assembling vertical videos for Reels/Shorts/TikTok. Invoked with /videoediting. Use when the user says 'edit this video', 're-cut', 'trim the pauses', 'colour grade', 'add subtitles', 'burn in captions', 'add infographics to the video', 'make a reel', 'make a short', 'vertical video', 'stitch these clips', 'normalise the audio', or hands over a .mov/.mp4 and asks to turn it into something watchable. Not for generating footage from scratch with AI models (Veo, Sora, HeyGen, Remotion)."
 metadata:
-  version: 1.0.0
+  version: 1.3.0
 ---
 
 # Video editing with ffmpeg
@@ -29,13 +29,14 @@ Decide this first — it changes everything downstream.
 Always follow the steps, never skip ahead. Each step produces the input for the next.
 
 1. **Check the environment.** If ffmpeg / faster-whisper / Chrome are missing → [references/setup.md](references/setup.md). On a clean machine this takes ten minutes.
-2. **Inspect the source** — ffprobe, scene detection, a contact sheet. **Look at the frames with your own eyes via Read.** Never edit blind from text alone.
-3. **Transcribe** with word-level timings and **proofread the result**. Speech recognition gets words wrong even on clean audio.
-4. **Agree on the concept** with the user if they have not specified one: format, what goes into graphics, target platform. One question, not a questionnaire.
-5. **Build the EDL** — cut pauses, never cut ideas.
-6. **Build `base`**, then verify the cuts frame by frame.
-7. **Generate subtitles and overlays**, build `final`.
-8. **Run the acceptance checklist** and deliver the file with SendUserFile.
+2. **Get the source.** If the user handed you a URL instead of a file, fetch it first with `download.py`.
+3. **Inspect the source** — ffprobe, scene detection, a contact sheet. **Look at the frames with your own eyes via Read.** Never edit blind from text alone.
+4. **Transcribe** with word-level timings and **proofread the result**. Speech recognition gets words wrong even on clean audio. No local model? `transcribe_cloud.py` gets the same output from Groq/OpenAI.
+5. **Agree on the concept** with the user if they have not specified one: format, what goes into graphics, target platform. One question, not a questionnaire.
+6. **Build the EDL** — cut pauses, never cut ideas.
+7. **Build `base`**, then verify the cuts frame by frame.
+8. **Generate subtitles and overlays**, build `final`.
+9. **Run the acceptance checklist** and deliver the file with SendUserFile.
 
 Full commands for each step — [references/pipeline.md](references/pipeline.md).
 
@@ -43,15 +44,19 @@ Full commands for each step — [references/pipeline.md](references/pipeline.md)
 
 Can: semantic cutting, pause removal, punch-in on cuts, colour grading (including `.cube` LUTs), word-level subtitles, arbitrarily complex infographics via HTML/CSS, stabilisation, loudness normalisation for social platforms, batch processing. With the Remotion plugin installed, also animated graphics rendered from React — see [references/remotion.md](references/remotion.md).
 
-**Cannot** — say so up front if the user asks for it: frame-accurate creative cutting, object tracking (pinning a caption to a moving hand), masks and masked grading, complex motion graphics. Those need Premiere / DaVinci / After Effects.
+**Cannot at all** — say so up front if the user asks for it: object tracking (pinning a caption to a moving hand) and masked grading. Those still need Premiere / DaVinci / After Effects.
+
+**Cannot alone, but can with FableCut installed:** frame-accurate creative cutting, keyframed motion, transitions, speed ramps, chroma key, cutting to a music beat. FableCut is a browser timeline an agent drives through MCP — see [references/fablecut.md](references/fablecut.md). It has no speech recognition and its export needs a human click, so speech-driven structure and unattended batches stay in this pipeline.
 
 ## Ready-made tools
 
-`assets/tools/` holds ten working scripts — **copy them into the project, do not rewrite them from scratch**:
+`assets/tools/` holds twelve working scripts — **copy them into the project, do not rewrite them from scratch**:
 
 | Script | What it does |
 |---|---|
+| `download.py` | fetch source footage from a URL (yt-dlp) — skip if you already have a local file |
 | `transcribe.py` | faster-whisper → `transcript.json` with word-level timings + `.srt` |
+| `transcribe_cloud.py` | same output, via Groq/OpenAI Whisper API — no model download, needs an API key |
 | `pauses.py` | lists pauses in speech — the basis for the EDL |
 | `dump_words.py` | every word with its index and confidence — for proofreading |
 | `make_ass.py` | word-level ASS subtitles, re-timed to the post-cut timeline |
@@ -87,8 +92,9 @@ Load these on demand, not all at once:
 - [references/design-system.md](references/design-system.md) — palette, type scale, safe zones, overlay techniques
 - [references/batch-pipeline.md](references/batch-pipeline.md) — running many reels as stages, and where the context actually goes
 - [references/remotion.md](references/remotion.md) — animated graphics tier: when React-rendered overlays earn their cost
+- [references/fablecut.md](references/fablecut.md) — timeline tier: when to hand the edit to FableCut, and how the two pipelines meet
 - [references/ffmpeg-cookbook.md](references/ffmpeg-cookbook.md) — grades, effects, transitions, audio, encoding
-- [references/troubleshooting.md](references/troubleshooting.md) — **read this before your first ffmpeg run**; fourteen failures, each of which cost an hour
+- [references/troubleshooting.md](references/troubleshooting.md) — **read this before your first ffmpeg run**; seventeen failures, each of which cost an hour
 
 ## Rules that make or break the video
 
@@ -105,6 +111,7 @@ Learned on real builds, not from documentation.
 9. **Verify by looking, not by faith.** Pull still frames, stack them with `hstack`, open the result via Read.
 10. **Never ship without the acceptance checklist** in pipeline.md.
 11. **Never let a tool write back into a config file.** A script that appends its own output to the EDL doubles that file's size, and every later edit echoes the whole thing into context. Generated data belongs in `work/`.
+12. **Read the first and last line of the transcript yourself.** Whisper hallucinates fabricated text over silence — classically a fake subtitler credit line on Russian audio — and it can carry a perfectly normal-looking confidence score. Both transcription scripts filter the obvious cases automatically, but the filter is not airtight. See [troubleshooting.md #17](references/troubleshooting.md).
 
 ## Orchestration
 

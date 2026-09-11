@@ -31,7 +31,7 @@ Concrete result: a 1:12 talking-head monologue shot on an iPhone becomes a finis
 | Loudness normalisation for social platforms | `loudnorm` to −14 LUFS |
 | Several videos from one source | one transcript, several `edl.json` files |
 
-**What it does not do**, stated up front: frame-accurate creative cutting, object tracking, masks and masked grading, complex motion graphics. Those need Premiere, DaVinci or After Effects.
+**What it does not do on its own**, stated up front: object tracking and masked grading — those need Premiere, DaVinci or After Effects. Frame-accurate cutting, keyframed motion, transitions and cutting to a music beat are not ffmpeg's strengths either, but an optional companion covers them — see *A timeline when you need one* below.
 
 ## Quick start
 
@@ -97,10 +97,11 @@ skill/videoediting/
 │   ├── design-system.md          palette, type scale, safe zones, techniques
 │   ├── batch-pipeline.md         many reels as cached stages — and where context goes
 │   ├── remotion.md               animated graphics tier via the Remotion plugin
+│   ├── fablecut.md               timeline tier via FableCut — and how the two meet
 │   ├── ffmpeg-cookbook.md        grades, effects, transitions, audio, encoding
-│   └── troubleshooting.md        14 failures, each of which cost an hour of debugging
+│   └── troubleshooting.md        17 failures, each of which cost an hour of debugging
 └── assets/
-    ├── tools/                    10 working scripts — copied into the project as-is
+    ├── tools/                    12 working scripts — copied into the project as-is
     └── templates/                starter edl.json, overlays.json, corrections.json
 ```
 
@@ -110,7 +111,9 @@ skill/videoediting/
 
 | Script | What it does |
 |---|---|
+| `download.py` | fetch source footage from a URL (yt-dlp) — skip it if you already have a local file |
 | `transcribe.py` | faster-whisper → `transcript.json` with word-level timings and `.srt` |
+| `transcribe_cloud.py` | the same output through the Groq / OpenAI Whisper API — no model download, needs an API key |
 | `pauses.py` | lists pauses in the speech — the basis for the edit list |
 | `dump_words.py` | every word with its index and recognition confidence — for proofreading |
 | `make_ass.py` | word-level ASS subtitles, re-timed onto the post-cut timeline |
@@ -144,6 +147,18 @@ Re-running is free when nothing changed. The `qa` stage stacks every reel into o
 ### Animated graphics (optional)
 
 With the [Remotion plugin](https://www.remotion.dev/docs/ai/claude-code-plugin) installed, React-rendered overlays can be exported with an alpha channel and composited by the same ffmpeg pass. Worth it when the motion itself carries meaning — counters, staged reveals, spring physics. Not worth it for cards that just fade in. See `references/remotion.md`.
+
+### A timeline when you need one (optional)
+
+[FableCut](https://github.com/ronak-create/FableCut) — by Ronak Parmar, MIT licence — is a browser-based non-linear editor that an agent drives over MCP. Its timeline is a single `project.json`: patch it and the open editor hot-reloads in about 150 ms.
+
+It covers precisely what filtergraphs are bad at: frame-accurate trimming by eye, 17 transitions, roughly 25 keyframable properties with easing curves, speed ramps, chroma key. Its `remake-reel` skill breaks a reference video down into shot boundaries, beats, BPM and an energy curve, then rebuilds that structure with your own footage — beat-driven editing that a transcript-first pipeline simply cannot see.
+
+What it does not do: speech recognition, of which it has none, and unattended export — the compositor is the browser, so rendering needs a human click. Speech-driven structure and ten-reel batches therefore stay here. The full split and the hand-off in both directions are written up in `references/fablecut.md`.
+
+```bash
+/plugin marketplace add ronak-create/FableCut
+```
 
 ### The edit list
 
@@ -201,9 +216,11 @@ Everything between the segments is cut. `zoom` alternates so that each cut reads
 | [Claude Code](https://claude.com/claude-code) | the agent itself | yes |
 | ffmpeg (**full build**) | the entire edit | yes |
 | Python 3.10+ | the pipeline scripts | yes |
-| faster-whisper | word-level transcript | yes |
+| faster-whisper | word-level transcript | yes, unless you transcribe in the cloud |
 | Google Chrome | rendering infographics to PNG | yes, if you want graphics |
-| 4 GB of disk space | the speech recognition model | yes |
+| 4 GB of disk space | the speech recognition model | yes, for the local model |
+| yt-dlp | pulling footage from a URL (`download.py`) | only when the source is a link |
+| A Groq / OpenAI API key | cloud transcription (`transcribe_cloud.py`) | only as an alternative to the local model |
 
 Stripped-down ffmpeg builds will not do — the `subtitles` (libass) and `lut3d` filters are required. There is a check in [INSTALL.md](INSTALL.md).
 
@@ -218,7 +235,8 @@ To rename it, change the folder name and the `name:` field on the second line of
 ## Limitations and honest caveats
 
 - **Speech recognition gets words wrong even on clean audio.** The `small` model makes roughly ten mistakes per minute, `large-v3` one or two. That is why the pipeline has a dedicated proofreading step and a `corrections.json` file keyed by word index. Do not skip it — an error burned into the subtitles is permanent.
-- **The first model download is slow** — 0.5 to 3 GB depending on the model you pick. After that it is cached.
+- **The first model download is slow** — 0.5 to 3 GB depending on the model you pick. After that it is cached. `transcribe_cloud.py` skips the download entirely, at the price of an API key.
+- **Whisper invents text over silence.** On a quiet opening or a quiet tail it can produce a line nobody said — classically a fabricated subtitler credit on Russian audio — and give it a perfectly ordinary confidence score. Both transcription scripts filter the obvious cases, but the filter is not airtight: read the first and last line of every transcript yourself.
 - **A cut placed where the subject is moving** (standing up, fixing their hair) looks like a mistake. The pipeline does not fix this automatically — those spots must be avoided or covered with graphics. Hence the hard rule to review the contact sheet before building the edit list.
 - **This does not replace an editor on a complex project.** It is a way to produce a steady stream of similar vertical videos quickly and predictably.
 
@@ -232,6 +250,7 @@ The pipeline builds on ideas from several open projects:
 - [HUANGCHIHHUNGLeo/claude-real-video](https://github.com/HUANGCHIHHUNGLeo/claude-real-video) — source breakdown, scene detection
 - [bradautomates/claude-video](https://github.com/bradautomates/claude-video) — letting the agent look at video frame by frame
 - [digitalsamba/claude-code-video-toolkit](https://github.com/digitalsamba/claude-code-video-toolkit) — transition library, the brand-profile idea
+- [ronak-create/FableCut](https://github.com/ronak-create/FableCut) — the agent-driven browser timeline the optional editing tier is built around
 
 ## Licence
 
